@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ef4d45a644112e4cab812c702008574, type: 3}
+  m_Name: PlasmaBlaster
+  m_EditorClassIdentifier: 
+  blasterCooldown: 0.8
+  blasterMaxAmmo: 5
+  blasterReloadTime: 0.9
+  blasterMesh: {fileID: 4493585093827132993, guid: e68bb592cb7608641af94743435c5f4b, type: 3}
+  blasterMaterial: {fileID: 2100000, guid: d6db38bcff6d3c646a312d387fc73d69, type: 2}
+  projectilePrefab: {fileID: 8822391707718460064, guid: f2e1f14d5e3be3f448cd0922bed45664, type: 3}
+  projectileSpeed: 20
+  projectileDamage: 40
+  projectileSpawnPos: {x: 0, y: 0, z: 1.5}
