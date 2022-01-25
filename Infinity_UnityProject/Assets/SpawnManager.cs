@@ -5,15 +5,25 @@ using TMPro;
 
 public class SpawnManager : MonoBehaviour
 {
-    private GameMode gameMode;
+    public GameMode gameMode;
 
     private Wave currentWave;
+
+    private int enemyCount;
+
+    [SerializeField]
+    private PlayerInterface playerInterface;
 
     [SerializeField]
     private Animator countdownAnimator;
 
     [SerializeField]
     private TextMeshProUGUI countdownText;
+
+    public void StopGame()
+    {
+        gameMode.gameInProgress = false;
+    }
 
     public void StartGameMode()
     {
@@ -33,6 +43,32 @@ public class SpawnManager : MonoBehaviour
         {
             StartCoroutine(GameModeCountDown());
         } 
+    }
+
+    public void EnemyDefeated()
+    {
+        enemyCount--;
+
+        playerInterface.UpdateEnemyText(enemyCount);
+
+
+        if (enemyCount == 0)
+        {
+            gameMode.waveIndex++;
+            currentWave = null;
+
+            if (gameMode.waveIndex < gameMode.gameModeWaves.Length)
+            {
+                playerInterface.DisplayConditionMessage(2);
+                Invoke("StartWave", 7);
+            }
+            else
+            {
+                Debug.Log("Game Mode Complete!");
+                StopGame();
+                playerInterface.DisplayConditionMessage(0);
+            }
+        }
     }
 
     private IEnumerator GameModeCountDown()
@@ -63,12 +99,13 @@ public class SpawnManager : MonoBehaviour
         {
             currentWave = gameMode.gameModeWaves[gameMode.waveIndex];
             Debug.Log("New Wave!");
+
+            playerInterface.UpdateWaveText(gameMode.waveIndex + 1);
+            enemyCount = gameMode.gameModeWaves[gameMode.waveIndex].enemyType.Length;
+            playerInterface.UpdateEnemyText(enemyCount);
+
             SpawnEnemy();
 
-        }
-        else
-        {
-            Debug.Log("Game Mode Complete!");
         }
     }
 
@@ -85,9 +122,7 @@ public class SpawnManager : MonoBehaviour
             }
             else
             {
-                gameMode.waveIndex++;
-                currentWave = null;
-                StartWave();
+                Debug.Log("All enemies spawned");
             }
         }
         else
@@ -123,7 +158,7 @@ public class SpawnManager : MonoBehaviour
 
         if(spawner != null)
         {
-            spawner.SpawnEnemy(enemyType);
+            spawner.SpawnEnemy(enemyType, gameMode);
             Debug.Log("Enemy Spawned!");
         }
         else

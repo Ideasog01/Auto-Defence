@@ -11,6 +11,9 @@ public class MenuManager : MonoBehaviour
     private GameObject[] menuCanvasArray;
 
     [SerializeField]
+    private Button[] selectedButtons;
+
+    [SerializeField]
     private TextMeshProUGUI[] playerStatusTextArray;
 
     [SerializeField]
@@ -30,6 +33,7 @@ public class MenuManager : MonoBehaviour
     {
         menuCanvasArray[2].SetActive(false);
         menuCanvasArray[5].SetActive(true);
+        selectedButtons[5].Select();
     }
 
     public void StartLocalGame()
@@ -46,11 +50,13 @@ public class MenuManager : MonoBehaviour
     {
         menuCanvasArray[0].SetActive(false);
         menuCanvasArray[2].SetActive(true);
+        selectedButtons[2].Select();
     }
 
     public void LoadMainMenu()
     {
         menuCanvasArray[0].SetActive(true);
+        selectedButtons[0].Select();
 
         for(int i = 1; i < menuCanvasArray.Length; i++)
         {
@@ -64,6 +70,7 @@ public class MenuManager : MonoBehaviour
     {
         menuCanvasArray[2].SetActive(false);
         menuCanvasArray[3].SetActive(true);
+        selectedButtons[3].Select();
 
         DeviceManager.joinScreenActive = true;
     }
@@ -72,6 +79,7 @@ public class MenuManager : MonoBehaviour
     {
         menuCanvasArray[2].SetActive(false);
         menuCanvasArray[4].SetActive(true);
+        selectedButtons[4].Select();
     }
 
     public void DisplayOptionsMenu(bool isActive)

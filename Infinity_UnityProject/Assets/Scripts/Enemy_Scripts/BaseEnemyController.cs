@@ -27,8 +27,11 @@ public class BaseEnemyController : MonoBehaviour
 
     private bool _playerVisible;
 
-    public void SetProperties(Enemy enemy)
+    private GameMode currentGameMode;
+
+    public void SetProperties(Enemy enemy, GameMode gameMode)
     {
+        currentGameMode = gameMode;
         enemyMaxHealth = enemy.enemyMaxHealth;
         _enemyHealth = enemyMaxHealth;
     }
@@ -39,6 +42,7 @@ public class BaseEnemyController : MonoBehaviour
 
         if(_enemyHealth <= 0)
         {
+            GameObject.Find("GameManager").GetComponent<SpawnManager>().EnemyDefeated();
             Destroy(this.gameObject);
         }
     }
@@ -67,33 +71,22 @@ public class BaseEnemyController : MonoBehaviour
     private void Awake()
     {
         _navMeshAgent = this.GetComponent<NavMeshAgent>();
+        _navMeshAgent.updateRotation = false;
     }
 
     private void Update()
     {
-        if(_playerObject != null)
+        if(_playerObject != null && currentGameMode.gameInProgress)
         {
             SetEnemyDestination(_playerObject.transform.position);
+            Rotation();
         }
-
-
     }
 
     private void Rotation()
     {
-        if(_playerObject == null)
-        {
-            _navMeshAgent.updateRotation = true;
-        }
-        else
-        {
-            _navMeshAgent.updateRotation = false;
-
-            float targetAngle = Mathf.Atan2(_playerObject.transform.position.x, _playerObject.transform.position.z) * Mathf.Rad2Deg;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _turnVelocity, turnSpeed);
-
-            this.transform.rotation = Quaternion.Euler(0, angle, 0);
-        }
+        Quaternion targetRotation = Quaternion.LookRotation(_playerObject.transform.position - this.transform.position);
+        this.transform.rotation = Quaternion.RotateTowards(this.transform.rotation, targetRotation, Time.deltaTime * 800);
     }
 
     private void SetEnemyDestination(Vector3 enemyDestination)
@@ -103,9 +96,12 @@ public class BaseEnemyController : MonoBehaviour
 
     private void StartAttack()
     {
-        if (enemyIndex == 1)
+        if(currentGameMode.gameInProgress)
         {
-            this.GetComponent<ScoutEnemyController>().PrimaryFire();
+            if (enemyIndex == 1)
+            {
+                this.GetComponent<ScoutEnemyController>().PrimaryFire();
+            }
         }
     }
 }

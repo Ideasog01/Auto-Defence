@@ -46,12 +46,16 @@ public class PlayerController : MonoBehaviour
 
     private CursorController cursorHandler;
 
+    private SpawnManager _spawnManager;
+
     private void Awake()
     {
         _playerController = this.GetComponent<CharacterController>();
         _playerInterface = this.GetComponent<PlayerInterface>();
         _playerCam = GameObject.Find("Main Camera").GetComponent<Camera>();
         cursorHandler = GameObject.Find("GamepadCursor").GetComponent<CursorController>();
+        _spawnManager = GameObject.Find("GameManager").GetComponent<SpawnManager>();
+
         _focusObject = this.transform.GetChild(2).gameObject;
 
         _playerInput = new PlayerInput();
@@ -72,15 +76,24 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        MovePlayer();
-        cursorHandler.MoveCursor(mouseRotation);
-        RotatePlayer();
+        if(_spawnManager.gameMode.gameInProgress)
+        {
+            MovePlayer();
+            cursorHandler.MoveCursor(mouseRotation);
+            RotatePlayer();
+        }
     }
 
     public void DamagePlayer(int amount)
     {
         playerHealth -= amount;
         _playerInterface.DisplayPlayerHealth(playerMaxHealth, playerHealth);
+
+        if(playerHealth <= 0)
+        {
+            _spawnManager.StopGame();
+            _playerInterface.DisplayConditionMessage(1);
+        }
     }
 
     public void RotatePlayer()
