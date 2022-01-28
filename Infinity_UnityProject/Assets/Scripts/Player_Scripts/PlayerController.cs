@@ -31,42 +31,33 @@ public class PlayerController : MonoBehaviour
 
     private float _turnVelocity;
 
-    private Vector2 _direction;
-
-    private PlayerInput _playerInput;
-
+    [SerializeField]
     private Camera _playerCam;
 
     private GameObject _focusObject;
 
+    [SerializeField]
     private PlayerInterface _playerInterface;
 
-    private Vector2 mouseRotation;
-    private Vector2 rightStickRotation;
-
-    private CursorController cursorHandler;
-
     private SpawnManager _spawnManager;
+
+    private Vector3 movementInput;
+
+    private float rotationInputX;
+
+    private GameManager _gameManager;
+
+    private bool _isDead;
 
     private void Awake()
     {
         _playerController = this.GetComponent<CharacterController>();
-        _playerInterface = this.GetComponent<PlayerInterface>();
-        _playerCam = GameObject.Find("Main Camera").GetComponent<Camera>();
-        cursorHandler = GameObject.Find("GamepadCursor").GetComponent<CursorController>();
         _spawnManager = GameObject.Find("GameManager").GetComponent<SpawnManager>();
+        _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+
+        _gameManager.PlayerJoined(this.transform.parent.gameObject);
 
         _focusObject = this.transform.GetChild(2).gameObject;
-
-        _playerInput = new PlayerInput();
-        _playerInput.Gameplay.Movement.performed += ctx => _direction = ctx.ReadValue<Vector2>();
-        _playerInput.Gameplay.PrimaryFire.performed += ctx => PrimaryFire();
-        _playerInput.Gameplay.Reload.performed += ctx => Reload();
-
-        _playerInput.Gameplay.MouseX.performed += ctx => mouseRotation = ctx.ReadValue<Vector2>();
-        _playerInput.Gameplay.RightStick.performed += ctx => rightStickRotation = ctx.ReadValue<Vector2>();
-
-        _playerInput.Gameplay.Interact.performed += ctx => Interact();
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -74,45 +65,54 @@ public class PlayerController : MonoBehaviour
         playerHealth = playerMaxHealth;
     }
 
-    private void Update()
-    {
-        if(_spawnManager.gameMode.gameInProgress)
-        {
-            MovePlayer();
-            cursorHandler.MoveCursor(mouseRotation);
-            RotatePlayer();
-        }
-    }
-
     public void DamagePlayer(int amount)
     {
-        playerHealth -= amount;
-        _playerInterface.DisplayPlayerHealth(playerMaxHealth, playerHealth);
-
-        if(playerHealth <= 0)
+        if(!_isDead)
         {
-            _spawnManager.StopGame();
-            _playerInterface.DisplayConditionMessage(1);
+            playerHealth -= amount;
+            _playerInterface.DisplayPlayerHealth(playerMaxHealth, playerHealth);
+
+            if (playerHealth <= 0)
+            {
+                _gameManager.PlayerDefeated();
+
+                this.gameObject.tag = "Untagged";
+
+                _isDead = true;
+            } 
         }
     }
 
-    public void RotatePlayer()
+    public void RevivePlayer()
     {
-        this.transform.Rotate(new Vector3(0, 1, 0) * Time.deltaTime * mouseRotation.x * 50);
-        this.transform.Rotate(new Vector3(0, 1, 0) * Time.deltaTime * rightStickRotation.x * 150);
+        playerHealth = playerMaxHealth;
+        this.gameObject.tag = "Player";
+        _isDead = false;
+        _playerInterface.DisplayPlayerHealth(playerMaxHealth, playerHealth);
+        _gameManager.PlayerRevived();
     }
 
-    private void Reload()
+    public void RotatePlayerMouse(InputAction.CallbackContext context)
     {
-        if(currentBlaster != null)
+        rotationInputX = context.ReadValue<Vector2>().x;
+    }
+
+    public void RotatePlayerGamePad(InputAction.CallbackContext context)
+    {
+        rotationInputX = context.ReadValue<Vector2>().x * 10;
+    }
+
+    public void Reload(InputAction.CallbackContext context)
+    {
+        if(currentBlaster != null && context.performed && playerHealth > 0)
         {
             currentBlaster.ReloadBlaster();
         }
     }
 
-    private void Interact()
+    public void Interact(InputAction.CallbackContext context)
     {
-        if(nearBlaster != null)
+        if(nearBlaster != null && context.performed && playerHealth > 0)
         {
             BlasterType priorBlaster = currentBlaster.blasterType;
 
@@ -131,9 +131,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void PrimaryFire()
+    public void PrimaryFire(InputAction.CallbackContext context)
     {
-        if(currentBlaster != null)
+        if(currentBlaster != null && context.performed && playerHealth > 0)
         {
             currentBlaster.PrimaryFire();
         }
@@ -141,33 +141,23 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
     }
 
-    private void MovePlayer()
+    public void MovePlayer(InputAction.CallbackContext context)
     {
-        Vector3 movementDirection = new Vector3(_direction.x, 0, _direction.y);
+        movementInput = new Vector3(context.ReadValue<Vector2>().x, 0, context.ReadValue<Vector2>().y);
 
-        if (movementDirection.magnitude >= 0.1f)
-        {
-            float targetAngle = Mathf.Atan2(movementDirection.x, movementDirection.z) * Mathf.Rad2Deg;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _turnVelocity, turnSpeed);
+        //float targetAngle = Mathf.Atan2(movementInput.x, movementInput.z) * Mathf.Rad2Deg;
+        //float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _turnVelocity, turnSpeed);
 
-            //this.transform.rotation = Quaternion.Euler(0, angle, 0);
-            _playerController.transform.position += movementDirection * playerSpeed * Time.deltaTime;
-        }
+        //this.transform.rotation = Quaternion.Euler(0, angle, 0);
     }
 
-    private void OnEnable()
+    private void Update()
     {
-        if(_playerInput != null)
+        if(_spawnManager.gameMode.gameInProgress && playerHealth > 0)
         {
-            _playerInput.Gameplay.Enable();
+            _playerController.Move(movementInput * playerSpeed * Time.deltaTime);
+            this.transform.Rotate(new Vector3(0, 1, 0) * Time.deltaTime * rotationInputX * 50);
         }
-    }
-
-    private void OnDisable()
-    {
-        if (_playerInput != null)
-        {
-            _playerInput.Gameplay.Disable();
-        }
+        
     }
 }

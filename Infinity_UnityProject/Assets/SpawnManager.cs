@@ -9,16 +9,35 @@ public class SpawnManager : MonoBehaviour
 
     private Wave currentWave;
 
+    public List<PlayerInterface> playerInterfaceArray = new List<PlayerInterface>();
+
     private int enemyCount;
 
-    [SerializeField]
-    private PlayerInterface playerInterface;
+    private GameManager _gameManager;
 
-    [SerializeField]
-    private Animator countdownAnimator;
+    private bool _gameModeStarted;
 
-    [SerializeField]
-    private TextMeshProUGUI countdownText;
+    public void AddPlayerInterface(PlayerInterface playerInterface)
+    {
+        playerInterfaceArray.Add(playerInterface);
+    }
+
+    private void Update()
+    {
+        if(gameMode != null)
+        {
+            if (gameMode.startGameMode && _gameManager.playerArray.Count > 0 && !_gameModeStarted)
+            {
+                StartGameMode();
+                _gameModeStarted = true;
+            }
+        }
+        else
+        {
+            Debug.Log("Game Mode = Null");
+        }
+        
+    }
 
     public void StopGame()
     {
@@ -49,7 +68,10 @@ public class SpawnManager : MonoBehaviour
     {
         enemyCount--;
 
-        playerInterface.UpdateEnemyText(enemyCount);
+        foreach(PlayerInterface player in playerInterfaceArray)
+        {
+            player.UpdateEnemyText(enemyCount);
+        }
 
 
         if (enemyCount == 0)
@@ -59,14 +81,21 @@ public class SpawnManager : MonoBehaviour
 
             if (gameMode.waveIndex < gameMode.gameModeWaves.Length)
             {
-                playerInterface.DisplayConditionMessage(2);
+                foreach (PlayerInterface player in playerInterfaceArray)
+                {
+                    player.DisplayConditionMessage(2);
+                }
                 Invoke("StartWave", 7);
             }
             else
             {
                 Debug.Log("Game Mode Complete!");
                 StopGame();
-                playerInterface.DisplayConditionMessage(0);
+
+                foreach (PlayerInterface player in playerInterfaceArray)
+                {
+                    player.DisplayConditionMessage(0);
+                }
             }
         }
     }
@@ -74,22 +103,56 @@ public class SpawnManager : MonoBehaviour
     private IEnumerator GameModeCountDown()
     {
         yield return new WaitForSeconds(1);
-        countdownText.gameObject.SetActive(true);
-        countdownAnimator.SetBool("active", true);
-        countdownText.text = "5";
+
+        foreach(PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().gameObject.SetActive(true);
+            player.GetCountdownText().text = "5";
+            player.GetCountdownText().GetComponent<Animator>().SetBool("active", true);
+        }
+
         yield return new WaitForSeconds(1.5f);
-        countdownText.text = "4";
+
+        foreach (PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().text = "4";
+        }
         yield return new WaitForSeconds(1.5f);
-        countdownText.text = "3";
+
+        foreach (PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().text = "3";
+        }
+
         yield return new WaitForSeconds(1.5f);
-        countdownText.text = "2";
+
+        foreach (PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().text = "2";
+        }
+
         yield return new WaitForSeconds(1.5f);
-        countdownText.text = "1";
+
+        foreach (PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().text = "1";
+        }
+
         yield return new WaitForSeconds(1.5f);
-        countdownText.text = "Defend!";
-        countdownAnimator.SetBool("active", false);
+
+        foreach (PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().text = "Defend!";
+            player.GetCountdownText().GetComponent<Animator>().SetBool("active", false);
+        }
+
         yield return new WaitForSeconds(1.5f);
-        countdownText.gameObject.SetActive(false);
+
+        foreach(PlayerInterface player in playerInterfaceArray)
+        {
+            player.GetCountdownText().gameObject.SetActive(false);
+        }
+
         StartWave();
     }
 
@@ -100,9 +163,15 @@ public class SpawnManager : MonoBehaviour
             currentWave = gameMode.gameModeWaves[gameMode.waveIndex];
             Debug.Log("New Wave!");
 
-            playerInterface.UpdateWaveText(gameMode.waveIndex + 1);
             enemyCount = gameMode.gameModeWaves[gameMode.waveIndex].enemyType.Length;
-            playerInterface.UpdateEnemyText(enemyCount);
+
+            foreach (PlayerInterface player in playerInterfaceArray)
+            {
+                player.UpdateWaveText(gameMode.waveIndex + 1);
+                player.UpdateEnemyText(enemyCount);
+            }
+
+            
 
             SpawnEnemy();
 
@@ -134,21 +203,7 @@ public class SpawnManager : MonoBehaviour
     private void Awake()
     {
         gameMode = GameObject.Find("GameModeSettings").GetComponent<GameMode>();
-    }
-
-    private void Start()
-    {
-        if(gameMode != null)
-        {
-            if(gameMode.startGameMode)
-            {
-                StartGameMode();
-            }
-        }
-        else
-        {
-            Debug.LogError("Gamemode is null!");
-        }
+        _gameManager = this.GetComponent<GameManager>();
     }
 
     private IEnumerator SpawnWait(Enemy enemyType)

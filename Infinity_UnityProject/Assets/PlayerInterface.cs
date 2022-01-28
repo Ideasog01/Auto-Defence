@@ -18,6 +18,14 @@ public class PlayerInterface : MonoBehaviour
     [SerializeField]
     private GameObject[] conditionMessages;
 
+    [SerializeField]
+    private TextMeshProUGUI countdownText;
+
+    public TextMeshProUGUI GetCountdownText()
+    {
+        return countdownText;
+    }
+
     public void DisplayPlayerHealth(int maxHealth, int health)
     {
         playerHealthSlider.maxValue = maxHealth;

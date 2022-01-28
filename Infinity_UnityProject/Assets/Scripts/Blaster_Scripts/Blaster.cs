@@ -11,9 +11,11 @@ public class Blaster : MonoBehaviour
 
     private bool _isActive;
 
-    private GameObject _reloadPrompt;
+    [SerializeField]
+    private GameObject reloadPrompt;
 
-    private TextMeshProUGUI _reloadText;
+    [SerializeField]
+    private TextMeshProUGUI reloadText;
 
     private Transform projectileSpawn;
 
@@ -23,11 +25,8 @@ public class Blaster : MonoBehaviour
         _blasterAmmo = blasterType.blasterMaxAmmo;
 
         projectileSpawn = this.transform.GetChild(0);
-
-        _reloadPrompt = GameObject.Find("ReloadPrompt");
-        _reloadText = GameObject.Find("AmmoText").GetComponent<TextMeshProUGUI>();
-        _reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
-        _reloadPrompt.SetActive(false);
+        reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
+        reloadPrompt.SetActive(false);
 
         this.GetComponent<MeshFilter>().mesh = blasterType.blasterMesh;
         this.GetComponent<MeshRenderer>().material = blasterType.blasterMaterial;
@@ -43,9 +42,9 @@ public class Blaster : MonoBehaviour
         projectileSpawn.transform.localPosition = blasterType.projectileSpawnPos;
 
         _blasterAmmo = blasterType.blasterMaxAmmo;
-        _reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
+        reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
 
-        _reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
+        reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
     }
 
     public void PrimaryFire()
@@ -65,7 +64,7 @@ public class Blaster : MonoBehaviour
             ReloadBlaster();
         }
 
-        _reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
+        reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
     }
 
     public void ReloadBlaster()
@@ -82,12 +81,12 @@ public class Blaster : MonoBehaviour
 
     private IEnumerator Reload()
     {
-        _reloadPrompt.SetActive(true);
+        reloadPrompt.SetActive(true);
         yield return new WaitForSeconds(blasterType.blasterReloadTime);
         _isActive = true;
         _blasterAmmo = blasterType.blasterMaxAmmo;
-        _reloadPrompt.SetActive(false);
-        _reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
+        reloadPrompt.SetActive(false);
+        reloadText.text = _blasterAmmo.ToString() + "/" + blasterType.blasterMaxAmmo.ToString();
     }
 
    

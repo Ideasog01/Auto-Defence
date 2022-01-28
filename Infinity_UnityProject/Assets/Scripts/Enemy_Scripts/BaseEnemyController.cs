@@ -80,6 +80,11 @@ public class BaseEnemyController : MonoBehaviour
         {
             SetEnemyDestination(_playerObject.transform.position);
             Rotation();
+
+            if(_playerObject.gameObject.tag != "Player")
+            {
+                AssignPlayer(null);
+            }
         }
     }
 
